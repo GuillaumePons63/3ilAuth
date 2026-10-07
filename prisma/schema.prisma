@@ -1,0 +1,30 @@
+generator client {
+  // Générer le client JavaScript utilisé dans src/db.js.
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  // Les données sont conservées dans un fichier SQLite.
+  provider = "sqlite"
+}
+
+model User {
+  // @id : clé primaire ; autoincrement() : valeur générée par la BDD.
+  id           Int      @id @default(autoincrement())
+  email        String   @unique // Interdire deux comptes avec le même e-mail.
+  // Stocker le hash, jamais le mot de passe en clair.
+  passwordHash String
+  tickets      Ticket[] // Relation : cet utilisateur peut avoir plusieurs demandes.
+}
+
+model Ticket {
+  // L'identifiant de la demande est distinct de l'identifiant de son propriétaire.
+  id      Int    @id @default(autoincrement())
+  title   String
+  userId  Int // Colonne de clé étrangère enregistrée dans la table Ticket.
+  // La propriété user représente le lien vers User, grâce à userId qui référence User.id.
+  user    User   @relation(fields: [userId], references: [id])
+
+  @@index([userId]) // Accélérer les recherches par propriétaire, sans remplacer les droits d'accès.
+}

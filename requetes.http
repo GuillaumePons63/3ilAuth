@@ -1,0 +1,79 @@
+@base = http://localhost:3000
+@aliceToken = COLLER_LE_ACCESS_TOKEN_ALICE
+@bobToken = COLLER_LE_ACCESS_TOKEN_BOB
+
+### Inscrire Alice : 201 (409 si déjà inscrite)
+POST {{base}}/auth/register
+Content-Type: application/json
+
+{"email":"alice@example.test","password":"Une-longue-phrase-pour-Alice!"}
+
+### Inscrire Bob : 201
+POST {{base}}/auth/register
+Content-Type: application/json
+
+{"email":"bob@example.test","password":"Une-longue-phrase-pour-Bob!"}
+
+### Connexion Alice : 200. Copier access_token dans aliceToken.
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{"email":"alice@example.test","password":"Une-longue-phrase-pour-Alice!"}
+
+### Connexion Bob : 200. Copier access_token dans bobToken.
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{"email":"bob@example.test","password":"Une-longue-phrase-pour-Bob!"}
+
+### Profil Alice : 200, aucun hash
+GET {{base}}/me
+Authorization: Bearer {{aliceToken}}
+
+### Créer une demande : 201
+POST {{base}}/tickets
+Authorization: Bearer {{aliceToken}}
+Content-Type: application/json
+
+{"title":"Installer DB Browser"}
+
+### Alice voit sa demande : 200
+GET {{base}}/tickets
+Authorization: Bearer {{aliceToken}}
+
+### Bob ne voit aucune demande d'Alice : 200, []
+GET {{base}}/tickets
+Authorization: Bearer {{bobToken}}
+
+### Tenter de choisir Bob comme propriétaire : attribué à Alice
+POST {{base}}/tickets
+Authorization: Bearer {{aliceToken}}
+Content-Type: application/json
+
+{"title":"Propriétaire fourni par le serveur","userId":2}
+
+### Titre invalide : 400
+POST {{base}}/tickets
+Authorization: Bearer {{aliceToken}}
+Content-Type: application/json
+
+{"title":"a"}
+
+### Mauvais mot de passe : 401, message générique
+POST {{base}}/auth/login
+Content-Type: application/json
+
+{"email":"alice@example.test","password":"Une-phrase-incorrecte-assez-longue"}
+
+### Sans JWT : 401
+GET {{base}}/me
+
+### JWT altéré : 401
+GET {{base}}/me
+Authorization: Bearer jeton.altere.invalide
+
+### Inscription invalide : 400
+POST {{base}}/auth/register
+Content-Type: application/json
+
+{"email":"incorrect","password":"court"}

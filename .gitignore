@@ -1,0 +1,7 @@
+node_modules/
+.env
+src/generated/
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
